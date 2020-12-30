@@ -1,0 +1,30 @@
+{
+  "name": "listenchecker",
+  "version": "1.0.0",
+  "description": "Geotool zum manuellen Prüfen von Geometrie-Listen",
+  "main": "src/ts/index.ts",
+  "scripts": {
+    "startServer": "parcel watch --out-dir \"//gv-srv-w00118/GlassFish Docroot/listenTest\" --hmr-hostname localhost --public-url . src/*.htm",
+    "buildServer": "parcel build --out-dir \"//gv-srv-w00118/GlassFish Docroot/listenChecker\" --public-url . src/*.htm",
+    "start": "parcel src/*.html",
+    "build": "parcel build --public-url . src/*.html",
+    "validate-typescript": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlorianTimm/ListenChecker.git"
+  },
+  "keywords": [],
+  "author": "Florian Timm",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/FlorianTimm/ListenChecker/issues"
+  },
+  "dependencies": {
+    "@types/ol": "^6.4.2",
+    "ol": "^6.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.3"
+  }
+}
