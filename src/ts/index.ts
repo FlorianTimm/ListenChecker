@@ -1,21 +1,6 @@
-class Projekt {
-    private _id?: number;
-    public get id(): number {
-        return this._id;
-    }
-    public set id(value: number) {
-        this._id = value;
-    }
-    private _name?: string;
-    public get name(): string {
-        return this._name;
-    }
-    public set name(value: string) {
-        this._name = value;
-    }
-}
+import Projekt from "./Projekt";
 
-document.addEventListener('onload', () => {
+window.onload = (_evt: Event) => {
     let xr = new XMLHttpRequest();
     xr.open('GET', 'jsp/projekte.jsp', true);
 
@@ -25,11 +10,13 @@ document.addEventListener('onload', () => {
             for (let projekt of resp) {
                 let eintrag = document.createElement('li');
                 let link = document.createElement('a');
-                link.href = 'edit.htm?projekt=' + projekt.id;
-                link.innerHTML = projekt.name;
+                eintrag.appendChild(link);
+                link.href = 'edit.html?projekt=' + projekt.id;
+                link.innerHTML = projekt.bezeichnung;
 
                 document.getElementById('projekte').appendChild(eintrag)
             }
         }
     }
-});
+    xr.send(null);
+};
