@@ -176,6 +176,19 @@ export default class Editor {
                         serverType: ('geoserver'),
                         attributions: ['Freie und Hansestadt Hamburg, LGV 2019']
                     })
+                }),
+                new TileLayer({
+                    name: "Netz",
+                    opacity: 0.5,
+                    visible: true,
+                    source: new TileWMS({
+                        url: 'https://geodienste.hamburg.de/DE_HH_WMS_INSPIRE_A1_7_Verkehrsnetze',
+                        attributions: ['Freie und Hansestadt Hamburg, LGV 2019'],
+                        params: {
+                            'LAYERS': 'strassennetz_inspire_bab,strassennetz_inspire_bfs,strassennetz_inspire_bod,strassennetz_inspire_g',
+                            'FORMAT': 'image/png'
+                        }
+                    })
                 })
             ],
             target: 'map',
@@ -195,68 +208,11 @@ export default class Editor {
     }
 
     private getGeometrie() {
-        let vectorSource = this.getVectorLayerSource();
         let xr = new XMLHttpRequest();
-        let view = this.map.getView();
         xr.open('GET', 'jsp/geometrie.jsp?projekt=' + this.projekt, true);
 
-        xr.onreadystatechange = (test) => {
-            if (xr.readyState === XMLHttpRequest.DONE && xr.status === 200) {
-                let resp: { gid: number, geom?: { type: "Point" | "LineString" | "Polygon", coordinates: number[] | number[][] | number[][][] } } = JSON.parse(xr.responseText);
-                vectorSource.clear();
-                let features = new GeoJSON().readFeatures(resp);
-                vectorSource.addFeatures(features);
-                view.fit(vectorSource.getExtent());
-
-                if (view.getZoom() > 20) view.setZoom(20);
-
-                let sidebar = document.getElementById("sidebar");
-                let table = document.createElement("table");
-                sidebar.appendChild(table);
-                features.forEach((feature: Feature) => {
-                    let prop = feature.getProperties();
-                    for (let tag in prop) {
-                        if (['geometry', 'gid', 'status', 'last_selected'].indexOf(tag) >= 0) continue;
-                        let tr = document.createElement('tr');
-                        let td1 = document.createElement('td');
-                        td1.innerHTML = tag;
-                        tr.appendChild(td1);
-                        let td2 = document.createElement('td');
-                        td2.innerHTML = prop[tag];
-                        tr.appendChild(td2);
-                        table.appendChild(tr);
-                    }
-                });
-
-                let ueberspringen = document.createElement("button");
-                ueberspringen.innerHTML = "Überspringen";
-                ueberspringen.onclick = this.ueberspringen;
-                sidebar.appendChild(ueberspringen);
-
-                let fehler = document.createElement("button");
-                fehler.innerHTML = "Fehler";
-                fehler.style.backgroundColor = 'red';
-                fehler.onclick = this.fehler;
-                sidebar.appendChild(fehler);
-
-                let spaeter = document.createElement("button");
-                spaeter.innerHTML = "Später";
-                spaeter.style.backgroundColor = 'orange';
-                spaeter.onclick = this.spaeter;
-                sidebar.appendChild(spaeter);
-
-                let inOrdnung = document.createElement("button");
-                inOrdnung.innerHTML = "in Ordnung";
-                inOrdnung.style.backgroundColor = 'green'
-                inOrdnung.onclick = this.inordnung;
-                sidebar.appendChild(inOrdnung);
-
-                let bearbeitet = document.createElement("button");
-                bearbeitet.innerHTML = "Korrigiert";
-                bearbeitet.style.backgroundColor = 'darkgreen'
-                bearbeitet.onclick = this.bearbeitet;
-                sidebar.appendChild(bearbeitet);
-            }
+        xr.onreadystatechange = () => {
+            this.geomCallback(xr);
         }
         xr.send(null);
 
@@ -264,22 +220,81 @@ export default class Editor {
         this.timer = window.setTimeout(this.zeitAbgelaufen, 15 * 60 * 1000);
     }
 
+    private geomCallback(xr: XMLHttpRequest) {
+        if (xr.readyState === XMLHttpRequest.DONE && xr.status === 200) {
+            let resp: { gid: number; geom?: { type: "Point" | "LineString" | "Polygon"; coordinates: number[] | number[][] | number[][][]; }; } = JSON.parse(xr.responseText);
+            let vectorSource = this.getVectorLayerSource();
+            vectorSource.clear();
+            let features = new GeoJSON().readFeatures(resp);
+            vectorSource.addFeatures(features);
+            let view = this.map.getView();
+            view.fit(vectorSource.getExtent());
+
+            if (view.getZoom() > 20)
+                view.setZoom(20);
+
+            let sidebar = document.getElementById("sidebar");
+            let table = document.createElement("table");
+            sidebar.appendChild(table);
+            features.forEach((feature: Feature) => {
+                let prop = feature.getProperties();
+                for (let tag in prop) {
+                    if (['geometry', 'gid', 'status', 'last_selected'].indexOf(tag) >= 0)
+                        continue;
+                    let tr = document.createElement('tr');
+                    let td1 = document.createElement('td');
+                    td1.innerHTML = tag;
+                    tr.appendChild(td1);
+                    let td2 = document.createElement('td');
+                    td2.innerHTML = prop[tag];
+                    tr.appendChild(td2);
+                    table.appendChild(tr);
+                }
+            });
+
+            let ueberspringen = document.createElement("button");
+            ueberspringen.innerHTML = "Überspringen";
+            ueberspringen.onclick = this.ueberspringen.bind(this);
+            sidebar.appendChild(ueberspringen);
+
+            let fehler = document.createElement("button");
+            fehler.innerHTML = "Fehler";
+            fehler.style.backgroundColor = 'red';
+            fehler.onclick = this.fehler.bind(this);
+            sidebar.appendChild(fehler);
+
+            let spaeter = document.createElement("button");
+            spaeter.innerHTML = "Später";
+            spaeter.style.backgroundColor = 'orange';
+            spaeter.onclick = this.spaeter.bind(this);
+            sidebar.appendChild(spaeter);
+
+            let inOrdnung = document.createElement("button");
+            inOrdnung.innerHTML = "in Ordnung";
+            inOrdnung.style.backgroundColor = 'green';
+            inOrdnung.onclick = this.inordnung.bind(this);
+            sidebar.appendChild(inOrdnung);
+
+            let bearbeitet = document.createElement("button");
+            bearbeitet.innerHTML = "Korrigiert";
+            bearbeitet.style.backgroundColor = 'darkgreen';
+            bearbeitet.onclick = this.bearbeitet.bind(this);
+            sidebar.appendChild(bearbeitet);
+        }
+    }
+
     private zeitAbgelaufen() {
         this.ueberspringen();
     }
 
     private ueberspringen() {
-        let id = this.naechster();
-
-        let xr = new XMLHttpRequest();
-        xr.open('GET', 'jsp/ueberspringen.jsp?gid=' + id, true);
-        xr.send(null);
+        this.setStatus(-1);
     }
 
     private naechster(): number | string {
         let vectorSource = this.getVectorLayerSource();
         let feat = vectorSource.getFeatures().pop();
-        let id = feat.getId();
+        let id = feat.get('gid');
         vectorSource.clear();
         window.clearTimeout(this.timer);
         document.getElementById("sidebar").innerHTML = "";
@@ -305,7 +320,10 @@ export default class Editor {
     private setStatus(status: number) {
         let id = this.naechster();
         let xr = new XMLHttpRequest();
-        xr.open('GET', 'jsp/setstatus.jsp?gid=' + id + '&status=' + status, true);
+        xr.open('GET', 'jsp/geometrie.jsp?projekt=' + this.projekt + '&gid=' + id + '&status=' + status, true);
+        xr.onreadystatechange = (test) => {
+            this.geomCallback(xr);
+        }
         xr.send(null);
     }
 
@@ -318,7 +336,7 @@ export default class Editor {
             vectorLayer.setStyle(new Style({
                 stroke: new Stroke({
                     color: 'magenta',
-                    width: 2,
+                    width: 4,
                 }),
                 fill: new Fill({
                     color: 'magenta',
