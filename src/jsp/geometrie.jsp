@@ -43,7 +43,7 @@ try {
 		int status = Integer.parseInt(request.getParameter("status"));
 	
 
-		if (status >= 0 && status <= 100) {
+		if (status >= 0 && status <= 110) {
 			String st_getPos = String.format("UPDATE listchecker.%s u SET last_selected = null, status = ? WHERE gid = ?;", tabelle);
 			PreparedStatement getPos = db.prepareStatement(st_getPos);
 			getPos.setInt(1,status);
@@ -56,7 +56,7 @@ try {
 			getPos.executeUpdate();
 		}
 
-		order = String.format("ORDER BY st_distance (geom, (Select geom from listchecker.%s WHERE gid = " + gid + ")) ASC ", tabelle);
+		order = String.format("AND gid != " + gid + " ORDER BY st_distance (geom, (Select geom from listchecker.%s WHERE gid = " + gid + ")) ASC ", tabelle);
 	}
 
 	// neue Geometrie ausgeben

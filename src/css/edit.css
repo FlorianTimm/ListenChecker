@@ -18,16 +18,101 @@ html {
     text-align: center;
 }
 
-#sidebar table {
-    padding-bottom: 30px;
+#data {
+    margin-top: 1em;
+    margin-left: 1em;
 }
 
-#sidebar button {
-    display: block;
-    margin: 20px;
+#data table {
+    padding-bottom: 30px;
 }
 
 #map {
     height: 100%;
     margin: 0 250px 0 0;
+}
+
+#buttons {
+    width: 100%;
+    bottom: 0;
+    display: none;
+    position: absolute;
+    margin-bottom: 1.5em;
+}
+#buttons button {
+    width: 80%;
+    margin-bottom: 0.5em;
+    height: 2.5em;
+}
+
+#fehler {
+    background-color: red;
+}
+
+#spaeter {
+    background-color: orange;
+}
+
+#inOrdnung {
+    background-color: green;
+}
+
+#bearbeitet {
+    background-color: darkgreen;
+    color: lightgray;
+}
+
+div#othermaps {
+    position: absolute;
+    display: block;
+    left: 8px;
+    bottom: 6px;
+}
+
+div#othermaps button {
+    display: block;
+    float: left;
+    width: inherit;
+    font-weight: inherit;
+    padding: 3px;
+    border-radius: 0px;
+}
+
+div#othermaps button:first-child {
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+}
+
+div#othermaps button:last-child {
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
+
+}
+
+.ol-scale-line {
+    bottom: 3em;
+}
+
+table {
+    border-collapse: collapse;
+}
+td:nth-child(2) {
+    text-align: left;
+    padding-left: 0.5em;
+}
+
+td:first-child {
+    /*text-transform: capitalize;*/
+    text-align: right;
+    border-right: 1px solid black;
+    padding-right: 0.5em;
+    
+}
+tr {
+    border-bottom: 1px dotted black;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+tr:last-child {
+    border-bottom: none;
 }

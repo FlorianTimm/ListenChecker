@@ -2,7 +2,7 @@ import { Feature, Map } from "ol";
 import { View } from 'ol';
 import { defaults as defaultControls, ScaleLine, ZoomSlider } from 'ol/control';
 import { defaults as defaultInteractions } from 'ol/interaction';
-import { fromLonLat } from 'ol/proj';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import { register } from 'ol/proj/proj4';
 import { TileWMS as TileWMS, Vector } from 'ol/source';
 import OSM from 'ol/source/OSM';
@@ -34,6 +34,26 @@ export default class Editor {
         this.createMap(div);
 
         this.getGeometrie();
+
+        document.getElementById('ueberspringen').onclick = this.ueberspringen.bind(this);
+        document.getElementById('fehler').onclick = this.fehler.bind(this);
+        document.getElementById('spaeter').onclick = this.spaeter.bind(this);
+        document.getElementById('inOrdnung').onclick = this.inordnung.bind(this);
+        document.getElementById('bearbeitet').onclick = this.bearbeitet.bind(this);
+
+        document.onkeyup = function (e) {
+            if (e.key == '1') {
+                this.fehler();
+            } else if (e.key == '2') {
+                this.spaeter();
+            } else if (e.key == '3') {
+                this.inordnung();
+            } else if (e.key == '6') {
+                this.bearbeitet();
+            } else if (e.key == '0') {
+                this.ueberspringen();
+            }
+        }.bind(this);
     }
 
     private createMap(div: HTMLDivElement) {
@@ -205,6 +225,45 @@ export default class Editor {
                 //extent: transform([548000, 5916500, 588500, 5955000], 'EPSG:25832', CONFIG.EPSG_CODE),
             })
         });
+
+        let other_div = document.createElement("div");
+        other_div.id = "othermaps";
+        other_div.className = "ol-control ol-unselectable";
+        document.body.appendChild(other_div);
+
+        let mapillary = document.createElement("button");
+        mapillary.innerHTML = "Mappillary";
+        other_div.appendChild(mapillary);
+        mapillary.addEventListener("click", () => {
+            let view = this.map.getView();
+            let middle = toLonLat(view.getCenter(), 'EPSG:25832')
+            let url = "https://www.mapillary.com/app/?lat=" + middle[1] + "&lng=" + middle[0] + "&z=" + (view.getZoom() - 2);
+            let win = window.open(url, 'zweitkarte');
+            win.focus();
+        })
+
+        let google = document.createElement("button");
+        google.innerHTML = "Google";
+        other_div.appendChild(google);
+        google.addEventListener("click", () => {
+            let view = this.map.getView();
+            let middle = toLonLat(view.getCenter(), 'EPSG:25832')
+            let url = "https://www.google.com/maps/@" + middle[1] + "," + middle[0] + "," + (view.getZoom() - 1) + "z";
+            let win = window.open(url, 'zweitkarte');
+            win.focus();
+        })
+
+        let geoportal = document.createElement("button");
+        geoportal.innerHTML = "Geoportal";
+        other_div.appendChild(geoportal);
+        geoportal.addEventListener("click", () => {
+            let view = this.map.getView();
+            let middle = view.getCenter()
+            let zoom = Math.round(((view.getZoom() - 10) > 9) ? 9 : (view.getZoom() - 11))
+            let url = "https://geofos.fhhnet.stadt.hamburg.de/FHH-Atlas/?center=" + middle[0] + "," + middle[1] + "&zoomlevel=" + zoom;
+            let win = window.open(url, 'zweitkarte');
+            win.focus();
+        })
     }
 
     private getGeometrie() {
@@ -217,7 +276,7 @@ export default class Editor {
         xr.send(null);
 
         if (this.timer) window.clearTimeout(this.timer);
-        this.timer = window.setTimeout(this.zeitAbgelaufen, 15 * 60 * 1000);
+        this.timer = window.setTimeout(this.zeitAbgelaufen.bind(this), 15 * 60 * 1000);
     }
 
     private geomCallback(xr: XMLHttpRequest) {
@@ -233,9 +292,9 @@ export default class Editor {
             if (view.getZoom() > 20)
                 view.setZoom(20);
 
-            let sidebar = document.getElementById("sidebar");
+            let sidebar_data = document.getElementById("data");
             let table = document.createElement("table");
-            sidebar.appendChild(table);
+            sidebar_data.appendChild(table);
             features.forEach((feature: Feature) => {
                 let prop = feature.getProperties();
                 for (let tag in prop) {
@@ -252,34 +311,7 @@ export default class Editor {
                 }
             });
 
-            let ueberspringen = document.createElement("button");
-            ueberspringen.innerHTML = "Überspringen";
-            ueberspringen.onclick = this.ueberspringen.bind(this);
-            sidebar.appendChild(ueberspringen);
-
-            let fehler = document.createElement("button");
-            fehler.innerHTML = "Fehler";
-            fehler.style.backgroundColor = 'red';
-            fehler.onclick = this.fehler.bind(this);
-            sidebar.appendChild(fehler);
-
-            let spaeter = document.createElement("button");
-            spaeter.innerHTML = "Später";
-            spaeter.style.backgroundColor = 'orange';
-            spaeter.onclick = this.spaeter.bind(this);
-            sidebar.appendChild(spaeter);
-
-            let inOrdnung = document.createElement("button");
-            inOrdnung.innerHTML = "in Ordnung";
-            inOrdnung.style.backgroundColor = 'green';
-            inOrdnung.onclick = this.inordnung.bind(this);
-            sidebar.appendChild(inOrdnung);
-
-            let bearbeitet = document.createElement("button");
-            bearbeitet.innerHTML = "Korrigiert";
-            bearbeitet.style.backgroundColor = 'darkgreen';
-            bearbeitet.onclick = this.bearbeitet.bind(this);
-            sidebar.appendChild(bearbeitet);
+            document.getElementById("buttons").style.display = 'block'
         }
     }
 
@@ -297,7 +329,8 @@ export default class Editor {
         let id = feat.get('gid');
         vectorSource.clear();
         window.clearTimeout(this.timer);
-        document.getElementById("sidebar").innerHTML = "";
+        document.getElementById("data").innerHTML = "";
+        document.getElementById("buttons").style.display = 'none'
         return id;
     }
 
@@ -314,7 +347,7 @@ export default class Editor {
     }
 
     private bearbeitet() {
-        this.setStatus(101);
+        this.setStatus(110);
     }
 
     private setStatus(status: number) {
