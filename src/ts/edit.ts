@@ -365,18 +365,20 @@ export default class Editor {
             this.vectorLayerSource = new VectorSource();
             let vectorLayer = new VectorLayer({ source: this.vectorLayerSource });
             this.map.addLayer(vectorLayer);
-
+            
             vectorLayer.setStyle(new Style({
                 stroke: new Stroke({
                     color: 'magenta',
                     width: 4,
                 }),
-                fill: new Fill({
-                    color: 'magenta',
-                }),
+                fill: null/*new Fill({
+                    color: 'rgba(255,0,0,0.1)',
+                })*/,
                 image: new CircleStyle({
                     radius: 10,
-                    fill: null,
+                    /*fill: new Fill({
+                        color: 'rgba(255,0,0,0.1)',
+                    }),*/
                     stroke: new Stroke({
                         color: 'magenta',
                     }),
