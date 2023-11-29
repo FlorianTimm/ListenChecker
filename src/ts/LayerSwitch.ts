@@ -10,7 +10,7 @@ import '../css/layerswitch.css';
  * @version 2019.06.06
  * @license GPL-3.0-or-later
 */
-class LayerSwitch extends Control {
+export class LayerSwitch extends Control {
 	constructor(opt_options?: ControlOptions) {
 		var options = opt_options || {};
 		var element = document.createElement('div');
@@ -40,6 +40,7 @@ class LayerSwitch extends Control {
 					let label = document.createElement('label');
 					label.setAttribute('for', 'trans_' + id);
 					label.innerHTML = "Transparenz:";
+					label.style.marginLeft = "5px"
 					div_zusatz.appendChild(label);
 					let trans = document.createElement('input');
 					trans.setAttribute('type', 'range');
@@ -53,19 +54,19 @@ class LayerSwitch extends Control {
 					div_layer.appendChild(div_zusatz)
 
 					if (layer.getVisible()) {
-						bt_layer.style.backgroundColor = "green";
+						bt_layer.style.backgroundColor = "lightgreen";
 						div_zusatz.style.display = 'block';
 					} else {
-						bt_layer.style.backgroundColor = "grey";
+						bt_layer.style.backgroundColor = "var(--ol-background-color)";
 						div_zusatz.style.display = 'none';
 					}
 					bt_layer.addEventListener('click', function () {
 						layer.setVisible(!layer.getVisible());
 						if (layer.getVisible()) {
-							bt_layer.style.backgroundColor = "green";
+							bt_layer.style.backgroundColor = "lightgreen";
 							div_zusatz.style.display = 'block';
 						} else {
-							bt_layer.style.backgroundColor = "grey";
+							bt_layer.style.backgroundColor = "var(--ol-background-color)";
 							div_zusatz.style.display = 'none';
 						}
 					});
@@ -80,5 +81,3 @@ class LayerSwitch extends Control {
 		}, false);
 	}
 }
-
-export default LayerSwitch;

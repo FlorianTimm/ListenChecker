@@ -1,24 +1,30 @@
+
+import '../../node_modules/ol/ol.css'
+import '../css/edit.css';
+
 import { Feature, Map } from "ol";
 import { View } from 'ol';
 import { defaults as defaultControls, ScaleLine, ZoomSlider } from 'ol/control';
 import { defaults as defaultInteractions } from 'ol/interaction';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import { register } from 'ol/proj/proj4';
-import { TileWMS as TileWMS, Vector } from 'ol/source';
+import { TileWMS as TileWMS } from 'ol/source';
 import OSM from 'ol/source/OSM';
 import proj4 from 'proj4';
 import { TileLayer } from './openLayers/Layer';
-import LayerSwitch from './LayerSwitch';
+import { LayerSwitch } from './LayerSwitch';
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
-import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style';
+import { Circle as CircleStyle, Stroke, Style } from 'ol/style';
+import { Geometry } from "ol/geom";
+
 
 window.onload = (_evt: Event) => {
     //proj4.defs("EPSG:31467", "+proj=tmerc +lat_0=0 +lon_0=9 +k=1 +x_0=3500000 +y_0=0 +ellps=bessel +towgs84=598.1,73.7,418.2,0.202,0.045,-2.455,6.7 +units=m +no_defs");
     proj4.defs("EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
     register(proj4);
-    new Editor(<HTMLDivElement>document.getElementById('map'));
+    new Editor();
 };
 
 export default class Editor {
@@ -27,11 +33,11 @@ export default class Editor {
     private vectorLayerSource: VectorSource;
     timer: number;
 
-    constructor(div: HTMLDivElement) {
+    constructor() {
         const urlParams = new URLSearchParams(window.location.search);
         this.projekt = urlParams.get('projekt')
 
-        this.createMap(div);
+        this.createMap();
 
         this.getGeometrie();
 
@@ -41,7 +47,7 @@ export default class Editor {
         document.getElementById('inOrdnung').onclick = this.inordnung.bind(this);
         document.getElementById('bearbeitet').onclick = this.bearbeitet.bind(this);
 
-        document.onkeyup = function (e) {
+        document.onkeyup = (e) => {
             if (e.key == '1') {
                 this.fehler();
             } else if (e.key == '2') {
@@ -53,21 +59,23 @@ export default class Editor {
             } else if (e.key == '0') {
                 this.ueberspringen();
             }
-        }.bind(this);
+        };
     }
 
-    private createMap(div: HTMLDivElement) {
+    private createMap() {
         this.map = new Map({
             layers: [
                 new TileLayer({
                     name: 'OpenStreetMap',
                     visible: false,
+                    backgroundLayer: true,
                     switchable: true,
                     source: new OSM()
                 }),
                 new TileLayer({
                     name: 'ALKIS',
                     visible: false,
+                    backgroundLayer: true,
                     switchable: true,
                     opacity: 1,
                     source: new TileWMS({
@@ -80,23 +88,10 @@ export default class Editor {
                     })
                 }),
                 new TileLayer({
-                    name: 'LGV DOP 2017',
-                    visible: false,
-                    switchable: true,
-                    opacity: 1.0,
-                    source: new TileWMS({
-                        url: 'http://geodienste.hamburg.de/HH_WMS_DOP10',
-                        params: {
-                            'LAYERS': '1',
-                            'FORMAT': 'image/png'
-                        },
-                        attributions: ['Freie und Hansestadt Hamburg, LGV 2019']
-                    })
-                }),
-                new TileLayer({
-                    name: 'LGV DOP 2018',
+                    name: 'LGV DOP',
                     visible: true,
                     switchable: true,
+                    backgroundLayer: true,
                     opacity: 1.00,
                     source: new TileWMS({
                         url: 'https://geodienste.hamburg.de/HH_WMS_DOP_hochaufloesend',
@@ -111,6 +106,7 @@ export default class Editor {
                 new TileLayer({
                     name: 'LGV TrueDOP 2018',
                     visible: false,
+                    backgroundLayer: true,
                     switchable: true,
                     opacity: 1.0,
                     source: new TileWMS({
@@ -125,6 +121,7 @@ export default class Editor {
                 new TileLayer({
                     name: 'LGV DOP 2019 belaubt',
                     visible: false,
+                    backgroundLayer: true,
                     switchable: true,
                     opacity: 1.0,
                     source: new TileWMS({
@@ -140,6 +137,7 @@ export default class Editor {
                     name: 'CAD-Daten',
                     visible: false,
                     switchable: true,
+                    backgroundLayer: true,
                     opacity: 0.85,
                     source: new TileWMS({
                         url: 'http://gv-srv-w00118:20031/deegree/services/wms',
@@ -155,6 +153,7 @@ export default class Editor {
                     name: 'Kreuzungsskizzen',
                     visible: false,
                     switchable: true,
+                    backgroundLayer: true,
                     opacity: 0.85,
                     source: new TileWMS({
                         url: 'https://geodienste.hamburg.de/HH_WMS_Kreuzungsskizzen',
@@ -169,6 +168,7 @@ export default class Editor {
                 new TileLayer({
                     name: "Querschnitte (Dienst)",
                     visible: false,
+                    backgroundLayer: true,
                     switchable: true,
                     opacity: 0.6,
                     source: new TileWMS({
@@ -185,6 +185,7 @@ export default class Editor {
                 new TileLayer({
                     name: "Bezirks-Feinkartierung",
                     visible: false,
+                    backgroundLayer: true,
                     switchable: true,
                     opacity: 0.8,
                     source: new TileWMS({
@@ -284,7 +285,7 @@ export default class Editor {
             let resp: { gid: number; geom?: { type: "Point" | "LineString" | "Polygon"; coordinates: number[] | number[][] | number[][][]; }; } = JSON.parse(xr.responseText);
             let vectorSource = this.getVectorLayerSource();
             vectorSource.clear();
-            let features = new GeoJSON().readFeatures(resp);
+            let features = <Feature<Geometry>[]>new GeoJSON().readFeatures(resp);
             vectorSource.addFeatures(features);
             let view = this.map.getView();
             view.fit(vectorSource.getExtent());
@@ -295,7 +296,7 @@ export default class Editor {
             let sidebar_data = document.getElementById("data");
             let table = document.createElement("table");
             sidebar_data.appendChild(table);
-            features.forEach((feature: Feature) => {
+            features.forEach((feature: Feature<Geometry>) => {
                 let prop = feature.getProperties();
                 for (let tag in prop) {
                     if (['geometry', 'gid', 'status', 'last_selected'].indexOf(tag) >= 0)
@@ -354,7 +355,7 @@ export default class Editor {
         let id = this.naechster();
         let xr = new XMLHttpRequest();
         xr.open('GET', 'jsp/geometrie.jsp?projekt=' + this.projekt + '&gid=' + id + '&status=' + status, true);
-        xr.onreadystatechange = (test) => {
+        xr.onreadystatechange = () => {
             this.geomCallback(xr);
         }
         xr.send(null);
@@ -365,7 +366,7 @@ export default class Editor {
             this.vectorLayerSource = new VectorSource();
             let vectorLayer = new VectorLayer({ source: this.vectorLayerSource });
             this.map.addLayer(vectorLayer);
-            
+
             vectorLayer.setStyle(new Style({
                 stroke: new Stroke({
                     color: 'magenta',

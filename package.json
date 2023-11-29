@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "Geotool zum manuellen Prüfen von Geometrie-Listen",
   "scripts": {
-    "startServer": "parcel watch --dist-dir \"//gv-srv-w00175/GlassFish Docroot/listenTest\" --hmr-hostname localhost --public-url . src/*.html",
-    "buildServer": "parcel build --dist-dir \"//gv-srv-w00175/GlassFish Docroot/listenChecker\" --public-url . src/*.html",
-    "start": "parcel src/*.html",
-    "build": "parcel build --public-url . src/*.html",
-    "validate-typescript": "tsc --noEmit"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --output-path build --mode production",
+    "watch": "webpack --watch --mode development",
+    "start": "webpack serve --mode development",
+    "old_startServer": "parcel watch --dist-dir \"X:\\listenCheckerTest\" --host localhost --public-url . src/*.html",
+    "buildServer": "webpack --output-path \"X:\\\\listenChecker\" --mode production",
+    "buildBeta": "webpack --output-path \"X:\\\\listenCheckerTest\" --mode production",
+    "validate-typescript": "tsc --noEmit",
+    "buildDoc": "npx typedoc"
   },
   "repository": {
     "type": "git",
@@ -20,13 +24,22 @@
     "url": "https://github.com/FlorianTimm/ListenChecker/issues"
   },
   "dependencies": {
-    "@types/ol": "^6.4.2",
-    "ol": "^6.5.0",
-    "proj4": "^2.6.3"
+    "ol": "^8.2.0",
+    "proj4": "^2.9.0"
   },
   "devDependencies": {
-    "cssnano": "^4.1.10",
-    "typescript": "^4.1.3",
-    "parcel": "latest"
+    "@types/proj4": "^2.5.2",
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.3",
+    "cssnano": "^6.0.0",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.1",
+    "mini-css-extract-plugin": "^2.7.5",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.0.4",
+    "webpack": "^5.80.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.13.3"
   }
 }
