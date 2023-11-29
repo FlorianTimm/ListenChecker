@@ -101,7 +101,7 @@ export default class Editor {
                     source: new TileWMS({
                         url: 'https://geodienste.hamburg.de/HH_WMS_DOP_hochaufloesend',
                         params: {
-                            'LAYERS': 'dop_hochaufloesend_highres,dop_hochaufloesend_downscale',
+                            'LAYERS': 'dop_hochaufloesend',
                             'FORMAT': 'image/png'
                         },
                         attributions: ['Freie und Hansestadt Hamburg, LGV 2019']
